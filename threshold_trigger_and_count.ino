@@ -1,6 +1,6 @@
-#define THRESHHOLD 1.00
+#define THRESHHOLD 0.1
 #define ANALOGINPUT A3
-#define CALIBRATE_SAMPLE_COUNT 100
+#define CALIBRATE_SAMPLE_COUNT 50
 
 float analog = 0;
 float rawTh = ( 1024 / 5 ) * THRESHHOLD;
@@ -10,6 +10,7 @@ int ERROR = 0;
 void setup() {
   Serial.begin(9600);
 
+  /*
   Serial.println("calibrating...");
 
   //float sample[CALIBRATE_SAMPLE_COUNT];
@@ -35,17 +36,30 @@ void setup() {
     return;
   }
 
-  rawTh = max;
+//multiply by 2 for best result
+  rawTh = max * 2;*/
   Serial.print("Threshold: "); Serial.print( (rawTh / 1024) * 5 ); Serial.println("V");
-
+  
 }
 
 void loop() {
   if (ERROR == 1) return;
+
+  int n = 0;
   analog = analogRead(ANALOGINPUT);  // read the input pin
+  Serial.print(count); Serial.print(", "); Serial.println(analog); n++;
+  if (n > 1024) return;
 
-  if (analog > rawTh) count++;
-  while ( analog > rawTh ) analog = analogRead(ANALOGINPUT);
-
-  Serial.println(count);
+  if (analog > rawTh) { 
+    count++;
+    //Serial.println(count);
+  }
+  //delay(10);
+  while ( analog > rawTh ) {
+    analog = analogRead(ANALOGINPUT);
+    Serial.print(count); Serial.print(", "); Serial.println(analog); n++;
+    if (n > 1024) return;
+  }
+  //Serial.println(count);
+  return;
 }
