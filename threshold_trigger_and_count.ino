@@ -1,65 +1,69 @@
-#define THRESHHOLD 0.1
+#define THRESHOLD 0.1
 #define ANALOGINPUT A3
 #define CALIBRATE_SAMPLE_COUNT 50
+#define DATAPOINT_COUNT 1024
 
-float analog = 0;
-float rawTh = ( 1024 / 5 ) * THRESHHOLD;
-int count = 0;
+const int doFindTh = 0;
+float rawTh = ( 1024 / 5 ) * THRESHOLD;
 int ERROR = 0;
 
-void setup() {
-  Serial.begin(9600);
+void stop() {
+  while(1);
+}
 
-  /*
+int findThreshold(int *rawTh) {
+  
   Serial.println("calibrating...");
+  float sum = 0, read = 0, max = 0, avg = 0;
 
-  //float sample[CALIBRATE_SAMPLE_COUNT];
-  float avg = 0, max = 0, sum = 0;
-
+  //determine average, maximum
   for (int i = 0; i < CALIBRATE_SAMPLE_COUNT; i++) {
-    analog = analogRead(ANALOGINPUT);
-    //sample[i] = analog;
-    sum += analog;
-    if (analog > max) max = analog;
+    read = analogRead(ANALOGINPUT);
+    sum += read;
+    if (read > max) max = read;
     delay(100);
   }
-
   avg = sum / CALIBRATE_SAMPLE_COUNT;
 
-  //determine if max is reasonable
   Serial.print("MAX:"); Serial.println(max);
   Serial.print("AVG:"); Serial.println(avg);
   
-  if ( (max - avg) > avg) {
-    ERROR = 1;
-    Serial.println("calibration error");
-    return;
-  }
-
-//multiply by 2 for best result
-  rawTh = max * 2;*/
-  Serial.print("Threshold: "); Serial.print( (rawTh / 1024) * 5 ); Serial.println("V");
-  
+  //somewhat arbitrary way to determine threshold accuracy
+  *rawTh = max;
+  if ( avg * 2 < max) {
+    Serial.println("calibration error, max sample deviates too much from average to function as accurate threshold");
+    return 1;
+  } else return 0;
 }
 
+void setup() {
+  Serial.begin(9600);
+  Serial.println();
+
+  //determine threshold 
+  if (doFindTh == 1) ERROR = findThreshold;
+
+  Serial.print("Threshold: "); Serial.print( (rawTh / 1024) * 5 ); Serial.println("V");
+}
+
+
+
+
+int flag = 0, n = 0;
+float analog = 0;
+
 void loop() {
-  if (ERROR == 1) return;
+  if (ERROR) stop;
 
-  int n = 0;
   analog = analogRead(ANALOGINPUT);  // read the input pin
-  Serial.print(count); Serial.print(", "); Serial.println(analog); n++;
-  if (n > 1024) return;
+  if (flag == 0 && analog > rawTh) { 
+    flag = 1;
+    Serial.print("1, "); 
+  } else Serial.print("0, ");
+  Serial.println(analog);
 
-  if (analog > rawTh) { 
-    count++;
-    //Serial.println(count);
-  }
-  //delay(10);
-  while ( analog > rawTh ) {
-    analog = analogRead(ANALOGINPUT);
-    Serial.print(count); Serial.print(", "); Serial.println(analog); n++;
-    if (n > 1024) return;
-  }
-  //Serial.println(count);
-  return;
+  if (analog < rawTh) flag = 0;
+
+  n++;
+  if (n > DATAPOINT_COUNT) stop;
 }
