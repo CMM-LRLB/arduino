@@ -27,8 +27,8 @@ int findThreshold(float *rawTh) {
   Serial.print("AVG:"); Serial.println(avg);
   
   //somewhat arbitrary way to determine threshold accuracy
-  *rawTh = max;
-  if ( avg * 2 < max) {
+  *rawTh = max * 1.5;
+  if ( avg * 1.5 < max) {
     Serial.println("calibration error, max sample deviates too much from average to function as accurate threshold");
     return 1;
   } else return 0;
@@ -41,27 +41,27 @@ void setup() {
   //determine threshold 
   if (doFindTh == 1) ERROR = findThreshold(&rawTh);
 
-  Serial.print("Threshold: "); Serial.print( (rawTh / 1024) * 5 ); Serial.println("V");
+  Serial.print("Threshold: "); Serial.println( rawTh ); //Serial.println("V");
 }
 
 
 
 
-int flag = 0, n = 0;
+int n = 0;
 float analog = 0;
-unsigned long startTime = micros(), endTime;
+//unsigned long startTime = micros(), endTime;
 void loop() {
   if (ERROR) while(1);
 
   do {
     analog = analogRead(ANALOGINPUT);
-    Serial.println(); Serial.print(analog); Serial.print(","); Serial.print(micros()); Serial.print(",");
+    Serial.println(); Serial.print(micros()); Serial.print(","); Serial.print(analog); Serial.print(",");
     n++; if (n > DATAPOINT_COUNT) while(1);
   } while (analog < rawTh);
   Serial.print("1");
   do {
     analog = analogRead(ANALOGINPUT);
-    Serial.println(); Serial.print(analog); Serial.print(","); Serial.print(micros()); Serial.print(",");
+    Serial.println(); Serial.print(micros()); Serial.print(","); Serial.print(analog); Serial.print(",");
     n++; if (n > DATAPOINT_COUNT) while(1);
   } while (analog > rawTh);
 
@@ -69,19 +69,5 @@ void loop() {
   if (ERROR || n > DATAPOINT_COUNT) {
     Serial.println("stopping...");
     while(1);
-  }
-  analog = analogRead(ANALOGINPUT);  // read the input pin
-
-  Serial.print(micros()); Serial.print(","); Serial.println(analog);
-  if (analog > rawTh) {
-    if(flag == 0) { 
-    flag = 1;
-    Serial.print("1,"); 
-    }
-  } else Serial.print("0,");
-  Serial.println(analog);
-
-  if (analog < rawTh) flag = 0;
-
-  n++;*/
+  }*/
 }
