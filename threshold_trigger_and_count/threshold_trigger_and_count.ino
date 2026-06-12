@@ -1,7 +1,7 @@
 #define THRESHOLD 0.12
 #define ANALOGINPUT A3
 #define CALIBRATE_SAMPLE_COUNT 20
-#define DATAPOINT_COUNT 1024
+#define DATAPOINT_COUNT 512
 
 const int doFindTh = 1;
 float rawTh = ( THRESHOLD / 5 ) * 1024;
@@ -27,8 +27,8 @@ int findThreshold(float *rawTh) {
   Serial.print("AVG:"); Serial.println(avg);
   
   //somewhat arbitrary way to determine threshold accuracy
-  *rawTh = max * 1.5;
-  if ( avg * 1.5 < max) {
+  *rawTh = max * 1.3;
+  if ( avg * 1.4 < max) {
     Serial.println("calibration error, max sample deviates too much from average to function as accurate threshold");
     return 1;
   } else return 0;
@@ -40,12 +40,8 @@ void setup() {
 
   //determine threshold 
   if (doFindTh == 1) ERROR = findThreshold(&rawTh);
-
   Serial.print("Threshold: "); Serial.println( rawTh ); //Serial.println("V");
 }
-
-
-
 
 int n = 0;
 float analog = 0;
